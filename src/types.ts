@@ -74,6 +74,28 @@ export interface ApplyReport {
   results: ApplyOperationResult[];
 }
 
+export interface DryRunOperationPreview {
+  operationId: string;
+  message: string;
+  details?: string;
+}
+
+export interface DryRunVerificationSummary {
+  status: VerifyPlanReport["status"];
+  approvalStatus: VerifyPlanReport["approvalStatus"];
+  readyToApplyFromIntegrityApproval: VerifyPlanReport["readyToApplyFromIntegrityApproval"];
+  blockers: string[];
+}
+
+export interface DryRunReport {
+  planId: string;
+  previewedAt: string;
+  success: boolean;
+  preconditionsChecked: false;
+  verification: DryRunVerificationSummary;
+  results: DryRunOperationPreview[];
+}
+
 export interface VerifyPlanReport {
   planId: string;
   summary: string;

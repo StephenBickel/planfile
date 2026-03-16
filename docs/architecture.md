@@ -27,7 +27,8 @@
 - Returns a simple ready/not-ready status with blockers
 
 5. Applier (`src/applier.ts`)
-- Executes approved operations in order
+- `previewPlan` returns side-effect-free operation previews and includes verification status/blockers
+- `applyPlan` executes approved operations in order
 - Returns per-operation result report
 - Hard-stops on unsafe or unmet preconditions
 
@@ -42,9 +43,10 @@
 3. Reviewer runs `inspect-plan`
 4. Reviewer/CI runs `verify-plan`
 5. Reviewer or policy system runs `approve-plan`
-6. `verify-plan` confirms ready status
-7. `apply-plan` re-checks verification, validates preconditions, and applies operations
-8. Report emitted for audit/logging
+6. Optional `apply-plan --dry-run` previews plan operations at any stage (pending/approved/tampered)
+7. `verify-plan` confirms ready status
+8. `apply-plan` re-checks verification, validates preconditions, and applies operations
+9. Report emitted for audit/logging
 
 ## Design Principles
 

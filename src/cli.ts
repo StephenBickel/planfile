@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { applyPlan } from "./applier";
+import { applyPlan, previewPlan } from "./applier";
 import { approvePlan, createPlanFromDraft, PlanDraft } from "./planner";
 import { PlanFile } from "./types";
 import { buildInspectReport, formatInspectSummary } from "./inspect";
@@ -48,7 +48,7 @@ function usage(): void {
   inspect-plan <plan.json> [--json]
   verify-plan <plan.json>
   approve-plan <plan.json> --by <name>
-  apply-plan <plan.json> [--yes]`);
+  apply-plan <plan.json> [--yes] [--dry-run]`);
 }
 
 function inspect(plan: PlanFile, jsonMode: boolean): void {
@@ -116,10 +116,18 @@ async function main(): Promise<void> {
     const args = process.argv.slice(3);
     const planPath = positionalPath(args);
     const yes = hasFlag(args, "--yes");
+    const dryRun = hasFlag(args, "--dry-run");
     if (!planPath) throw new Error("apply-plan requires a plan path");
-    if (!yes) throw new Error("Refusing to apply without --yes");
 
     const plan = readJson<PlanFile>(planPath);
+    if (dryRun) {
+      const preview = previewPlan(plan);
+      console.log(JSON.stringify(preview, null, 2));
+      return;
+    }
+
+    if (!yes) throw new Error("Refusing to apply without --yes");
+
     const report = applyPlan(plan);
     console.log(JSON.stringify(report, null, 2));
     return;

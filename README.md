@@ -54,15 +54,20 @@ planfile inspect-plan .plan/plan.json --json
 # 4) Human/CI verifies integrity + approval readiness
 planfile verify-plan .plan/plan.json
 
-# 5) Approval step (local or policy engine)
+# 5) Optional dry-run preview at any time (even before approval)
+planfile apply-plan .plan/plan.json --dry-run
+
+# 6) Approval step (local or policy engine)
 planfile approve-plan .plan/plan.json --by steve
 
-# 6) Verify again, then apply
+# 7) Verify again, then apply
 planfile verify-plan .plan/plan.json
 planfile apply-plan .plan/plan.json --yes
 ```
 
 `inspect-plan` defaults to concise human output. Use `inspect-plan --json` for machine-readable CI/policy workflows.
+
+`apply-plan --dry-run` returns a preview report without running preconditions, writing files, or executing commands. It works for pending/approved/tampered plans and includes verification state so readiness is explicit in the output.
 
 ## Coding-Agent Demo: Verify, Approve, Tamper Detection
 
@@ -125,6 +130,7 @@ Artifacts are written under `demo/output/` (screenshots plus Playwright video in
 Current MVP focuses on:
 - File-diff operations (`create`, `update`, `delete`)
 - Shell command operations with explicit risk and preconditions
+- Dry-run preview reports for planned file/command operations before apply
 - Local CLI and JSON plan artifacts
 
 Not yet in MVP:

@@ -2,7 +2,7 @@ import { execSync } from "node:child_process";
 import { readFileSync, rmSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { mkdirSync } from "node:fs";
-import { ApplyOperationResult, ApplyReport, PlanFile } from "./types";
+import { ApplyOperationResult, ApplyReport, DryRunOperationPreview, DryRunReport, PlanFile } from "./types";
 import { checkPreconditions } from "./preconditions";
 import { verifyPlan } from "./verify";
 
@@ -55,6 +55,75 @@ function applyCommandOperation(
       message: `command failed: ${(error as Error).message}`
     };
   }
+}
+
+function lineCount(value: string): number {
+  if (value.length === 0) return 0;
+  return value.split("\n").length;
+}
+
+function describeFilePreview(op: Extract<PlanFile["operations"][number], { type: "file" }>): DryRunOperationPreview {
+  if (op.action === "create") {
+    const after = op.after ?? "";
+    return {
+      operationId: op.id,
+      message: `would create ${op.path}`,
+      details: `after: ${after.length} chars, ${lineCount(after)} lines`
+    };
+  }
+
+  if (op.action === "update") {
+    const before = op.before ?? "";
+    const after = op.after ?? "";
+    const delta = after.length - before.length;
+    const deltaPrefix = delta >= 0 ? "+" : "";
+    return {
+      operationId: op.id,
+      message: `would update ${op.path}`,
+      details: `before: ${before.length} chars, after: ${after.length} chars, delta: ${deltaPrefix}${delta}, lines: ${lineCount(before)} -> ${lineCount(after)}`
+    };
+  }
+
+  const before = op.before;
+  return {
+    operationId: op.id,
+    message: `would delete ${op.path}`,
+    details: before == null ? "before content: not provided" : `before: ${before.length} chars, ${lineCount(before)} lines`
+  };
+}
+
+function describeCommandPreview(
+  op: Extract<PlanFile["operations"][number], { type: "command" }>
+): DryRunOperationPreview {
+  const cwd = op.cwd ?? process.cwd();
+  const allowFailure = op.allowFailure === true ? "yes" : "no";
+  return {
+    operationId: op.id,
+    message: `would run command: ${op.command}`,
+    details: `cwd: ${cwd}, allowFailure: ${allowFailure}`
+  };
+}
+
+export function previewPlan(plan: PlanFile): DryRunReport {
+  const verification = verifyPlan(plan);
+
+  const results = plan.operations.map((op) =>
+    op.type === "file" ? describeFilePreview(op) : describeCommandPreview(op)
+  );
+
+  return {
+    planId: plan.id,
+    previewedAt: new Date().toISOString(),
+    success: true,
+    preconditionsChecked: false,
+    verification: {
+      status: verification.status,
+      approvalStatus: verification.approvalStatus,
+      readyToApplyFromIntegrityApproval: verification.readyToApplyFromIntegrityApproval,
+      blockers: verification.blockers
+    },
+    results
+  };
 }
 
 export function applyPlan(plan: PlanFile): ApplyReport {
