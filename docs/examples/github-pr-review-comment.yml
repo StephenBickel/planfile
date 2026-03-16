@@ -1,0 +1,70 @@
+name: PR Planfile Review (Sticky Comment + Gate)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  planfile-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build planfile CLI
+        run: npm run build
+
+      - name: Verify plan artifact exists
+        run: test -f .plan/plan.json
+
+      - name: Produce inspect/verify/dry-run artifacts
+        shell: bash
+        run: |
+          node dist/cli.js inspect-plan .plan/plan.json --json > inspect-report.json
+          node dist/cli.js verify-plan .plan/plan.json > verify-report.json
+          node dist/cli.js apply-plan .plan/plan.json --dry-run > dry-run-report.json
+
+      - name: Render planfile PR review markdown
+        run: |
+          node dist/cli.js render-pr-comment .plan/plan.json \
+            --inspect inspect-report.json \
+            --verify verify-report.json \
+            --dry-run dry-run-report.json \
+            --out planfile-pr-comment.md
+
+      - name: Post sticky PR comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: planfile-review
+          path: planfile-pr-comment.md
+
+      - name: Enforce plan ready state
+        shell: bash
+        run: |
+          node -e 'const fs=require("node:fs");const r=JSON.parse(fs.readFileSync("verify-report.json","utf8"));if(r.status!=="ready"){console.error("Planfile gate failed:",r.blockers.join("; "));process.exit(1);}console.log("Planfile gate passed:",r.planId);'
+
+      - name: Upload review artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: planfile-review-artifacts
+          path: |
+            .plan/plan.json
+            inspect-report.json
+            verify-report.json
+            dry-run-report.json
+            planfile-pr-comment.md

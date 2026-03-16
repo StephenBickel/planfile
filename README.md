@@ -93,6 +93,9 @@ planfile approve-plan .plan/plan.json --by steve
 planfile verify-plan .plan/plan.json
 planfile apply-plan .plan/plan.json --yes
 
+# 8) Render a GitHub PR review comment (markdown)
+planfile render-pr-comment .plan/plan.json
+
 # Optional concise human apply report with recovery hints
 planfile apply-plan .plan/plan.json --yes --human
 ```
@@ -225,6 +228,7 @@ Example command controls in a draft/plan:
 - [Coding Agent Demo](docs/coding-agent-demo.md)
 - [Use Cases](docs/use-cases.md)
 - [GitHub PR Gate Example](docs/github-pr-gate-example.md)
+- [Sticky PR Comment Workflow](docs/examples/github-pr-review-comment.yml)
 
 ## Quick Start
 

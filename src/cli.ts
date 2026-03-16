@@ -4,9 +4,10 @@ import { resolve } from "node:path";
 import { applyPlan, previewPlan } from "./applier";
 import { formatApplySummary, formatDryRunSummary } from "./apply-format";
 import { approvePlan, createPlanFromDraft, PlanDraft } from "./planner";
-import { PlanFile } from "./types";
-import { buildInspectReport, formatInspectSummary } from "./inspect";
+import { DryRunReport, PlanFile, VerifyPlanReport } from "./types";
+import { buildInspectReport, formatInspectSummary, InspectReport } from "./inspect";
 import { verifyPlan } from "./verify";
+import { renderPRReviewComment } from "./pr-review";
 
 function readJson<T>(path: string): T {
   const full = resolve(path);
@@ -49,7 +50,8 @@ function usage(): void {
   inspect-plan <plan.json> [--json]
   verify-plan <plan.json>
   approve-plan <plan.json> --by <name>
-  apply-plan <plan.json> [--yes] [--dry-run] [--human]`);
+  apply-plan <plan.json> [--yes] [--dry-run] [--human]
+  render-pr-comment <plan.json> [--inspect <inspect.json>] [--verify <verify.json>] [--dry-run <dry-run.json>] [--out <comment.md>]`);
 }
 
 function inspect(plan: PlanFile, jsonMode: boolean): void {
@@ -132,6 +134,34 @@ async function main(): Promise<void> {
 
     const report = applyPlan(plan);
     console.log(human ? formatApplySummary(report) : JSON.stringify(report, null, 2));
+    return;
+  }
+
+  if (cmd === "render-pr-comment") {
+    const args = process.argv.slice(3);
+    const planPath = positionalPath(args, ["--inspect", "--verify", "--dry-run", "--out"]);
+    if (!planPath) throw new Error("render-pr-comment requires a plan path");
+
+    const plan = readJson<PlanFile>(planPath);
+    const inspectPath = arg(args, "--inspect");
+    const verifyPath = arg(args, "--verify");
+    const dryRunPath = arg(args, "--dry-run");
+    const outPath = arg(args, "--out");
+
+    const markdown = renderPRReviewComment({
+      plan,
+      inspectReport: inspectPath ? readJson<InspectReport>(inspectPath) : undefined,
+      verifyReport: verifyPath ? readJson<VerifyPlanReport>(verifyPath) : undefined,
+      dryRunReport: dryRunPath ? readJson<DryRunReport>(dryRunPath) : undefined
+    });
+
+    if (outPath) {
+      writeFileSync(resolve(outPath), `${markdown}\n`, "utf-8");
+      console.log(`PR comment markdown written: ${outPath}`);
+      return;
+    }
+
+    console.log(markdown);
     return;
   }
 
