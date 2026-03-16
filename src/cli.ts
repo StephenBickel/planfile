@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { applyPlan } from "./applier";
 import { approvePlan, createPlanFromDraft, PlanDraft } from "./planner";
 import { PlanFile } from "./types";
-import { computePlanHash } from "./hash";
+import { buildInspectReport, formatInspectSummary } from "./inspect";
 import { verifyPlan } from "./verify";
 
 function readJson<T>(path: string): T {
@@ -17,52 +17,48 @@ function writeJson(path: string, value: unknown): void {
   writeFileSync(full, JSON.stringify(value, null, 2) + "\n", "utf-8");
 }
 
-function arg(name: string): string | undefined {
-  const idx = process.argv.indexOf(name);
+function arg(args: string[], name: string): string | undefined {
+  const idx = args.indexOf(name);
   if (idx === -1) return undefined;
-  return process.argv[idx + 1];
+  return args[idx + 1];
+}
+
+function hasFlag(args: string[], name: string): boolean {
+  return args.includes(name);
+}
+
+function positionalPath(args: string[], flagsWithValues: string[] = []): string | undefined {
+  const valueFlags = new Set(flagsWithValues);
+
+  for (let i = 0; i < args.length; i += 1) {
+    const token = args[i];
+    if (token.startsWith("--")) {
+      if (valueFlags.has(token)) i += 1;
+      continue;
+    }
+    return token;
+  }
+
+  return undefined;
 }
 
 function usage(): void {
   console.log(`planfile commands:
   create-plan --from <draft.json> --out <plan.json>
-  inspect-plan <plan.json>
+  inspect-plan <plan.json> [--json]
   verify-plan <plan.json>
   approve-plan <plan.json> --by <name>
   apply-plan <plan.json> [--yes]`);
 }
 
-function inspect(plan: PlanFile): void {
-  const currentHash = computePlanHash(plan);
-  const recordedPlanHash = plan.integrity?.planHash;
-  const integrityMatches = recordedPlanHash === currentHash;
-  const approvalBound =
-    plan.approval.status === "approved" &&
-    plan.approval.approvedPlanHash === currentHash;
+function inspect(plan: PlanFile, jsonMode: boolean): void {
+  const report = buildInspectReport(plan);
+  if (jsonMode) {
+    console.log(JSON.stringify(report, null, 2));
+    return;
+  }
 
-  console.log(
-    JSON.stringify(
-      {
-        id: plan.id,
-        summary: plan.summary,
-        source: plan.source,
-        operationCount: plan.operations.length,
-        risk: plan.risk,
-        integrity: {
-          ...plan.integrity,
-          planHash: recordedPlanHash ?? null,
-          currentPlanHash: currentHash,
-          integrityMatches
-        },
-        approval: {
-          ...plan.approval,
-          boundToCurrentPlan: approvalBound
-        }
-      },
-      null,
-      2
-    )
-  );
+  console.log(formatInspectSummary(plan, report));
 }
 
 async function main(): Promise<void> {
@@ -73,8 +69,9 @@ async function main(): Promise<void> {
   }
 
   if (cmd === "create-plan") {
-    const from = arg("--from");
-    const out = arg("--out");
+    const args = process.argv.slice(3);
+    const from = arg(args, "--from");
+    const out = arg(args, "--out");
     if (!from || !out) throw new Error("create-plan requires --from and --out");
 
     const draft = readJson<PlanDraft>(from);
@@ -85,16 +82,18 @@ async function main(): Promise<void> {
   }
 
   if (cmd === "inspect-plan") {
-    const planPath = process.argv[3];
+    const args = process.argv.slice(3);
+    const planPath = positionalPath(args);
     if (!planPath) throw new Error("inspect-plan requires a plan path");
     const plan = readJson<PlanFile>(planPath);
-    inspect(plan);
+    inspect(plan, hasFlag(args, "--json"));
     return;
   }
 
   if (cmd === "approve-plan") {
-    const planPath = process.argv[3];
-    const by = arg("--by") ?? "unknown";
+    const args = process.argv.slice(3);
+    const planPath = positionalPath(args, ["--by"]);
+    const by = arg(args, "--by") ?? "unknown";
     if (!planPath) throw new Error("approve-plan requires a plan path");
 
     const plan = readJson<PlanFile>(planPath);
@@ -105,7 +104,8 @@ async function main(): Promise<void> {
   }
 
   if (cmd === "verify-plan") {
-    const planPath = process.argv[3];
+    const args = process.argv.slice(3);
+    const planPath = positionalPath(args);
     if (!planPath) throw new Error("verify-plan requires a plan path");
     const plan = readJson<PlanFile>(planPath);
     console.log(JSON.stringify(verifyPlan(plan), null, 2));
@@ -113,8 +113,9 @@ async function main(): Promise<void> {
   }
 
   if (cmd === "apply-plan") {
-    const planPath = process.argv[3];
-    const yes = process.argv.includes("--yes");
+    const args = process.argv.slice(3);
+    const planPath = positionalPath(args);
+    const yes = hasFlag(args, "--yes");
     if (!planPath) throw new Error("apply-plan requires a plan path");
     if (!yes) throw new Error("Refusing to apply without --yes");
 

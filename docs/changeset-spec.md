@@ -117,3 +117,8 @@ MVP note: this is deterministic local hashing, not external signing/attestation.
 - `readyToApplyFromIntegrityApproval`
 - `status` (`ready` or `not-ready`)
 - `blockers` (human-readable reasons when not ready)
+
+## Inspect Output (`inspect-plan`)
+
+- Default output is concise, human-readable summary text.
+- `inspect-plan --json` emits machine-readable JSON for CI/policy systems.

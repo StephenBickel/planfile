@@ -19,6 +19,9 @@ npm run cli -- create-plan --from examples/coding-agent-plan.json --out .plan/ag
 # Review phase: inspect readable details
 npm run cli -- inspect-plan .plan/agent-demo.json
 
+# Optional CI/policy inspect output
+npm run cli -- inspect-plan .plan/agent-demo.json --json
+
 # Verify phase before approval (expected: status "not-ready")
 npm run cli -- verify-plan .plan/agent-demo.json
 

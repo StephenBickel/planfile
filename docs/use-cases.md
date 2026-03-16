@@ -25,8 +25,10 @@ Problem: hard to enforce consistent review of autonomous side effects.
 
 With `planfile`:
 - CI validates plan structure and risk
-- PR includes machine-readable intent artifact
+- PR includes machine-readable intent artifact (`inspect-plan --json`)
 - Merge rules require plan approval status
+
+See: `docs/github-pr-gate-example.md` for a copy-paste workflow.
 
 ## 4) Security/Compliance Audit Trail
 

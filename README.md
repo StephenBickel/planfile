@@ -45,19 +45,24 @@ Testing and tracing are valuable, but they solve different layers:
 # 1) Agent emits a plan
 planfile create-plan --from examples/coding-agent-plan.json --out .plan/plan.json
 
-# 2) Human/CI inspects the plan
+# 2) Human inspects the plan (concise summary)
 planfile inspect-plan .plan/plan.json
 
-# 3) Human/CI verifies integrity + approval readiness
+# 3) CI/policy can request machine-readable inspect data
+planfile inspect-plan .plan/plan.json --json
+
+# 4) Human/CI verifies integrity + approval readiness
 planfile verify-plan .plan/plan.json
 
-# 4) Approval step (local or policy engine)
+# 5) Approval step (local or policy engine)
 planfile approve-plan .plan/plan.json --by steve
 
-# 5) Verify again, then apply
+# 6) Verify again, then apply
 planfile verify-plan .plan/plan.json
 planfile apply-plan .plan/plan.json --yes
 ```
+
+`inspect-plan` defaults to concise human output. Use `inspect-plan --json` for machine-readable CI/policy workflows.
 
 ## Coding-Agent Demo: Verify, Approve, Tamper Detection
 
@@ -134,6 +139,7 @@ Not yet in MVP:
 - [JSON Schema](schema/planfile.schema.json)
 - [Coding Agent Demo](docs/coding-agent-demo.md)
 - [Use Cases](docs/use-cases.md)
+- [GitHub PR Gate Example](docs/github-pr-gate-example.md)
 
 ## Quick Start
 
