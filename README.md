@@ -86,6 +86,18 @@ gatefile approve-plan .plan/plan.json --by steve
 gatefile apply-plan .plan/plan.json --yes
 ```
 
+### Agent Adapter (MVP)
+
+Use `adapt-agent` when an external agent emits concise proposal-style JSON:
+
+```bash
+gatefile adapt-agent --from examples/agent-adapter-input.json --out .plan/adapter-draft.json
+gatefile create-plan --from .plan/adapter-draft.json --out .plan/plan.json
+gatefile inspect-plan .plan/plan.json
+```
+
+See [docs/agent-adapter.md](docs/agent-adapter.md) for supported input formats and full workflow details.
+
 ## Safety Guardrails
 
 `apply-plan` enforces multiple safety layers:
@@ -126,6 +138,7 @@ See [docs/github-pr-gate-example.md](docs/github-pr-gate-example.md) for full wo
 ## Architecture
 
 - [Architecture](docs/architecture.md)
+- [Agent Adapter (MVP)](docs/agent-adapter.md)
 - [Changeset Spec](docs/changeset-spec.md)
 - [JSON Schema](schema/gatefile.schema.json)
 - [Use Cases](docs/use-cases.md)
@@ -141,6 +154,7 @@ See [TODO.md](TODO.md) for near-term plans. Current focus:
 - [x] Dry-run preview mode
 - [x] GitHub PR gate action
 - [x] Recovery guidance in apply reports
+- [x] Agent adapter command (`adapt-agent`) for proposal-to-draft conversion
 - [ ] Policy hook interfaces (`beforeApprove`, `beforeApply`)
 - [ ] Signing/attestation workflows
 - [ ] Agent SDK integrations

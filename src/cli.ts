@@ -3,6 +3,7 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { applyPlan, previewPlan } from "./applier";
 import { formatApplySummary, formatDryRunSummary } from "./apply-format";
+import { adaptAgentInputToDraft, AgentAdapterInput } from "./adapter";
 import { approvePlan, createPlanFromDraft, PlanDraft } from "./planner";
 import { DryRunReport, PlanFile, VerifyPlanReport } from "./types";
 import { buildInspectReport, formatInspectSummary, InspectReport } from "./inspect";
@@ -46,6 +47,7 @@ function positionalPath(args: string[], flagsWithValues: string[] = []): string 
 
 function usage(): void {
   console.log(`gatefile commands:
+  adapt-agent --from <agent-input.json> --out <draft.json>
   create-plan --from <draft.json> --out <plan.json>
   inspect-plan <plan.json> [--json]
   verify-plan <plan.json>
@@ -81,6 +83,19 @@ async function main(): Promise<void> {
     const plan = createPlanFromDraft(draft);
     writeJson(out, plan);
     console.log(`Plan created: ${out}`);
+    return;
+  }
+
+  if (cmd === "adapt-agent") {
+    const args = process.argv.slice(3);
+    const from = arg(args, "--from");
+    const out = arg(args, "--out");
+    if (!from || !out) throw new Error("adapt-agent requires --from and --out");
+
+    const input = readJson<AgentAdapterInput>(from);
+    const draft = adaptAgentInputToDraft(input);
+    writeJson(out, draft);
+    console.log(`Adapter draft created: ${out}`);
     return;
   }
 
