@@ -20,8 +20,9 @@ function integrityStatus(report: InspectReport): string {
 }
 
 function approvalStatus(verify: VerifyPlanReport): string {
-  if (verify.approvalStatus !== "approved") return verify.approvalStatus;
-  return verify.checks.approvalBoundToCurrentHash ? "approved (bound)" : "approved (not bound)";
+  if (verify.approvalStatus !== "approved") return `${verify.approvalStatus} (${verify.approvalIdentity})`;
+  if (!verify.checks.approvalBoundToCurrentHash) return `approved (not bound, ${verify.approvalIdentity})`;
+  return `approved (bound, ${verify.approvalIdentity})`;
 }
 
 function renderDryRunHighlights(dryRun: DryRunReport): string[] {

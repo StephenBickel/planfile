@@ -56,7 +56,7 @@ test('renderPRReviewComment includes required plan review signals', () => {
   assert.match(markdown, /## gatefile PR Review/);
   assert.match(markdown, /\| Summary \|/);
   assert.match(markdown, /\| Risk \| low \(score: 2\) \|/);
-  assert.match(markdown, /\| Approval \| pending \|/);
+  assert.match(markdown, /\| Approval \| pending \(unsigned\) \|/);
   assert.match(markdown, /\| Integrity \| match \|/);
   assert.match(markdown, /\| Apply ready \| no \|/);
   assert.match(markdown, /### Blockers/);

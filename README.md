@@ -12,6 +12,8 @@ Your AI agent wants to edit 14 files and run 3 shell commands. Do you trust it?
 ```bash
 npx gatefile inspect-plan .plan/plan.json    # see exactly what the agent wants to do
 npx gatefile approve-plan .plan/plan.json    # approve the hash-locked plan
+npx gatefile generate-attestation-key --out-private .gatefile/approval-key.pem
+npx gatefile approve-plan .plan/plan.json --by steve --signing-key .gatefile/approval-key.pem
 npx gatefile apply-plan .plan/plan.json      # execute with safety guardrails
 npx gatefile rollback-apply <receipt-id> --yes
 ```
@@ -40,7 +42,7 @@ Agent emits plan → Human reviews → Approve hash → Apply with guardrails
 5. **Apply** — execute with precondition checks, path sandboxing, command policies, and timeouts
 6. **Rollback (files)** — restore Gatefile-managed file operations from the pre-apply snapshot/receipt
 
-Approval is hash-bound: if anyone modifies the plan after approval, `verify` catches it and `apply` refuses.
+Approval is hash-bound: if anyone modifies the plan after approval, `verify` catches it and `apply` refuses. Signed attestation is optional in phase 1 and adds cryptographic proof of approval identity.
 
 ## Quick Start
 
@@ -83,6 +85,10 @@ gatefile apply-plan .plan/plan.json --dry-run
 
 # Approve (binds to exact hash)
 gatefile approve-plan .plan/plan.json --by steve
+
+# Optional: generate local Ed25519 key and sign approval attestation
+gatefile generate-attestation-key --out-private .gatefile/approval-key.pem --out-public .gatefile/approval-key.pub.pem
+gatefile approve-plan .plan/plan.json --by steve --signing-key .gatefile/approval-key.pem
 
 # Execute
 gatefile apply-plan .plan/plan.json --yes
@@ -158,10 +164,12 @@ Hook commands receive structured JSON on `stdin` and env vars like `GATEFILE_HOO
 | **Approval** | Hash-bound human or policy gate |
 | **Apply Report** | What executed, what failed, and why |
 | **Apply Receipt** | Repo-local record used for rollback and dependency checks |
+| **Approval Attestation** | Optional Ed25519 signature proving who approved the exact plan hash |
 
 ## Architecture
 
 - [Architecture](docs/architecture.md)
+- [Signed Approvals](docs/signed-approvals.md)
 - [Agent Adapter (MVP)](docs/agent-adapter.md)
 - [Changeset Spec](docs/changeset-spec.md)
 - [JSON Schema](schema/gatefile.schema.json)
@@ -170,7 +178,7 @@ Hook commands receive structured JSON on `stdin` and env vars like `GATEFILE_HOO
 
 ## Roadmap
 
-See [TODO.md](TODO.md) for near-term plans. Current focus:
+See [Product Roadmap](docs/product-roadmap.md) for the full product path and [TODO.md](TODO.md) for near-term execution.
 
 - [x] CLI with create/inspect/verify/approve/apply
 - [x] Hash-bound approval with tamper detection

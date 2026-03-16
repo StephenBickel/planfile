@@ -58,6 +58,23 @@ export interface Approval {
   approvedBy?: string;
   approvedAt?: string;
   approvedPlanHash?: string;
+  attestation?: ApprovalAttestation;
+}
+
+export interface ApprovalAttestationPayload {
+  type: "gatefile-approval-v1";
+  planId: string;
+  approvedBy: string;
+  approvedAt: string;
+  approvedPlanHash: string;
+}
+
+export interface ApprovalAttestation {
+  scheme: "ed25519-sha256";
+  keyId: string;
+  publicKeyPem: string;
+  payload: ApprovalAttestationPayload;
+  signature: string;
 }
 
 export interface PlanIntegrity {
@@ -233,6 +250,7 @@ export interface VerifyPlanReport {
   planId: string;
   summary: string;
   approvalStatus: Approval["status"];
+  approvalIdentity: "unsigned" | "signed" | "invalid-attestation";
   status: "ready" | "not-ready";
   hashes: {
     recordedPlanHash: string | null;
@@ -243,6 +261,10 @@ export interface VerifyPlanReport {
     integrityMetadataExists: boolean;
     recordedHashMatchesCurrent: boolean;
     approvalBoundToCurrentHash: boolean;
+    approvalAttestationPresent: boolean;
+    approvalAttestationValid: boolean | null;
+    approvalAttestationKeyIdMatches: boolean | null;
+    approvalAttestationPayloadMatchesApproval: boolean | null;
   };
   readyToApplyFromIntegrityApproval: boolean;
   blockers: string[];

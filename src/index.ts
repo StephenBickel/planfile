@@ -12,3 +12,4 @@ export * from "./pr-review";
 export * from "./state";
 export * from "./config";
 export * from "./hooks";
+export * from "./attestation";

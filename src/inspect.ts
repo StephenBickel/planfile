@@ -68,7 +68,7 @@ export function formatInspectSummary(plan: PlanFile, report: InspectReport): str
     `Operations: ${report.operationCount}`,
     `Risk: ${report.risk.level} (score: ${report.risk.score})`,
     `Integrity: ${report.integrity.integrityMatches ? "match" : "mismatch"}`,
-    `Approval: ${report.approval.status}${report.approval.status === "approved" ? ` (bound: ${report.approval.boundToCurrentPlan ? "yes" : "no"})` : ""}`,
+    `Approval: ${report.approval.status}${report.approval.status === "approved" ? ` (bound: ${report.approval.boundToCurrentPlan ? "yes" : "no"}, identity: ${verify.approvalIdentity})` : ""}`,
     `Ready To Apply: ${verify.status === "ready" ? "yes" : "no"}`
   ];
   if (report.dependencies.requiredPlanIds.length > 0) {

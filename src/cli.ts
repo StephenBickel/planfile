@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { applyPlan, previewPlan, rollbackApply } from "./applier";
 import { formatApplySummary, formatDryRunSummary, formatRollbackSummary } from "./apply-format";
@@ -12,6 +12,7 @@ import { renderPRReviewComment } from "./pr-review";
 import { loadGatefileConfig } from "./config";
 import { runPolicyHook } from "./hooks";
 import { getRepoRoot } from "./state";
+import { generateApprovalAttestationKeyPair } from "./attestation";
 
 function readJson<T>(path: string): T {
   const full = resolve(path);
@@ -54,7 +55,8 @@ function usage(): void {
   create-plan --from <draft.json> --out <plan.json>
   inspect-plan <plan.json> [--json]
   verify-plan <plan.json>
-  approve-plan <plan.json> --by <name>
+  approve-plan <plan.json> --by <name> [--signing-key <private.pem>] [--key-id <key-id>]
+  generate-attestation-key --out-private <private.pem> [--out-public <public.pem>] [--force]
   apply-plan <plan.json> [--yes] [--dry-run] [--human]
   rollback-apply <receipt-id> [--yes] [--human]
   render-pr-comment <plan.json> [--inspect <inspect.json>] [--verify <verify.json>] [--dry-run <dry-run.json>] [--out <comment.md>]`);
@@ -114,9 +116,14 @@ async function main(): Promise<void> {
 
   if (cmd === "approve-plan") {
     const args = process.argv.slice(3);
-    const planPath = positionalPath(args, ["--by"]);
+    const planPath = positionalPath(args, ["--by", "--signing-key", "--key-id"]);
     const by = arg(args, "--by") ?? "unknown";
+    const signingKeyPath = arg(args, "--signing-key");
+    const signingKeyId = arg(args, "--key-id");
     if (!planPath) throw new Error("approve-plan requires a plan path");
+    if (signingKeyId && !signingKeyPath) {
+      throw new Error("--key-id requires --signing-key");
+    }
 
     const plan = readJson<PlanFile>(planPath);
     const config = loadGatefileConfig(getRepoRoot());
@@ -124,9 +131,33 @@ async function main(): Promise<void> {
       repoRoot: getRepoRoot(),
       planPath: resolve(planPath)
     });
-    const next = approvePlan(plan, by);
+    const signingPrivateKeyPem = signingKeyPath
+      ? readFileSync(resolve(signingKeyPath), "utf-8")
+      : undefined;
+    const next = approvePlan(plan, by, { signingPrivateKeyPem, signingKeyId });
     writeJson(planPath, next);
     console.log(`Plan approved by ${by}: ${planPath}`);
+    return;
+  }
+
+  if (cmd === "generate-attestation-key") {
+    const args = process.argv.slice(3);
+    const outPrivate = arg(args, "--out-private");
+    const outPublic = arg(args, "--out-public");
+    const force = hasFlag(args, "--force");
+    if (!outPrivate) throw new Error("generate-attestation-key requires --out-private");
+    if (!force && (existsSync(resolve(outPrivate)) || (outPublic && existsSync(resolve(outPublic))))) {
+      throw new Error("Refusing to overwrite key files without --force");
+    }
+
+    const keys = generateApprovalAttestationKeyPair();
+    writeFileSync(resolve(outPrivate), keys.privateKeyPem, "utf-8");
+    if (outPublic) {
+      writeFileSync(resolve(outPublic), keys.publicKeyPem, "utf-8");
+    }
+    console.log(
+      `Attestation key generated: keyId=${keys.keyId}, private=${outPrivate}${outPublic ? `, public=${outPublic}` : ""}`
+    );
     return;
   }
 
