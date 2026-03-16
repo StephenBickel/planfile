@@ -262,6 +262,96 @@ function describeCommandPreview(
   };
 }
 
+function unique<T>(items: T[]): T[] {
+  return [...new Set(items)];
+}
+
+function operationGuidance(op: PlanFile["operations"][number]): string {
+  if (op.type === "file") {
+    if (op.action === "create") {
+      return `If applied, remove ${op.path} to undo the created file.`;
+    }
+    if (op.action === "update") {
+      return op.before == null
+        ? `If applied, restore ${op.path} from git/history; no inline before content was provided.`
+        : `If applied, restore ${op.path} using the operation's before content.`;
+    }
+    return op.before == null
+      ? `If applied, recreate ${op.path} from git/history; no inline before content was provided.`
+      : `If applied, recreate ${op.path} using the operation's before content.`;
+  }
+
+  return "Command effects are not auto-reverted; run explicit inverse commands or restore from snapshots.";
+}
+
+function buildDryRunRecovery(plan: PlanFile): DryRunReport["recovery"] {
+  const affectedPaths = unique(
+    plan.operations.filter((op) => op.type === "file").map((op) => op.path)
+  );
+
+  return {
+    transactionalRollback: false,
+    affectedPaths,
+    attemptedOperationIds: [],
+    succeededOperationIds: [],
+    pendingOperationIds: plan.operations.map((op) => op.id),
+    steps: plan.operations.map((op) => ({
+      operationId: op.id,
+      type: op.type,
+      status: "planned",
+      path: op.type === "file" ? op.path : undefined,
+      guidance: operationGuidance(op)
+    })),
+    notes: [
+      "Dry-run executes nothing; use this preview to prepare manual rollback before real apply.",
+      "planfile does not provide transactional rollback."
+    ]
+  };
+}
+
+function buildApplyRecovery(plan: PlanFile, results: ApplyOperationResult[]): ApplyReport["recovery"] {
+  const resultById = new Map(results.map((result) => [result.operationId, result]));
+  const attemptedOperationIds = results.map((result) => result.operationId);
+  const succeededOperationIds = results.filter((result) => result.success).map((result) => result.operationId);
+  const failedOperationId = results.find((result) => !result.success)?.operationId;
+  const pendingOperationIds = plan.operations
+    .map((op) => op.id)
+    .filter((operationId) => !resultById.has(operationId));
+
+  const attemptedFilePaths = unique(
+    plan.operations
+      .filter((op): op is Extract<PlanFile["operations"][number], { type: "file" }> => op.type === "file")
+      .filter((op) => attemptedOperationIds.includes(op.id))
+      .map((op) => op.path)
+  );
+
+  return {
+    transactionalRollback: false,
+    affectedPaths: attemptedFilePaths,
+    attemptedOperationIds,
+    succeededOperationIds,
+    failedOperationId,
+    pendingOperationIds,
+    steps: plan.operations.map((op) => {
+      const result = resultById.get(op.id);
+      const status = !result ? "not-run" : result.success ? "succeeded" : "failed";
+      return {
+        operationId: op.id,
+        type: op.type,
+        status,
+        path: op.type === "file" ? op.path : undefined,
+        guidance: operationGuidance(op)
+      };
+    }),
+    notes: [
+      failedOperationId
+        ? `Apply stopped at operation ${failedOperationId}; later operations were not run.`
+        : "Apply completed all operations in order.",
+      "planfile does not provide transactional rollback."
+    ]
+  };
+}
+
 export function previewPlan(plan: PlanFile): DryRunReport {
   const verification = verifyPlan(plan);
 
@@ -280,7 +370,8 @@ export function previewPlan(plan: PlanFile): DryRunReport {
       readyToApplyFromIntegrityApproval: verification.readyToApplyFromIntegrityApproval,
       blockers: verification.blockers
     },
-    results
+    results,
+    recovery: buildDryRunRecovery(plan)
   };
 }
 
@@ -306,7 +397,8 @@ export function applyPlan(plan: PlanFile): ApplyReport {
         planId: plan.id,
         appliedAt: new Date().toISOString(),
         success: false,
-        results
+        results,
+        recovery: buildApplyRecovery(plan, results)
       };
     }
   }
@@ -315,6 +407,7 @@ export function applyPlan(plan: PlanFile): ApplyReport {
     planId: plan.id,
     appliedAt: new Date().toISOString(),
     success: true,
-    results
+    results,
+    recovery: buildApplyRecovery(plan, results)
   };
 }

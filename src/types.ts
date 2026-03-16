@@ -86,11 +86,33 @@ export interface ApplyOperationResult {
   message: string;
 }
 
+export type RecoveryOperationStatus = "planned" | "succeeded" | "failed" | "not-run";
+
+export interface RecoveryOperationGuidance {
+  operationId: string;
+  type: Operation["type"];
+  status: RecoveryOperationStatus;
+  path?: string;
+  guidance: string;
+}
+
+export interface RecoveryGuidance {
+  transactionalRollback: false;
+  affectedPaths: string[];
+  attemptedOperationIds: string[];
+  succeededOperationIds: string[];
+  failedOperationId?: string;
+  pendingOperationIds: string[];
+  steps: RecoveryOperationGuidance[];
+  notes: string[];
+}
+
 export interface ApplyReport {
   planId: string;
   appliedAt: string;
   success: boolean;
   results: ApplyOperationResult[];
+  recovery: RecoveryGuidance;
 }
 
 export interface DryRunOperationPreview {
@@ -113,6 +135,7 @@ export interface DryRunReport {
   preconditionsChecked: false;
   verification: DryRunVerificationSummary;
   results: DryRunOperationPreview[];
+  recovery: RecoveryGuidance;
 }
 
 export interface VerifyPlanReport {

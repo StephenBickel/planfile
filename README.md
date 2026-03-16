@@ -57,17 +57,24 @@ planfile verify-plan .plan/plan.json
 # 5) Optional dry-run preview at any time (even before approval)
 planfile apply-plan .plan/plan.json --dry-run
 
+# Optional concise human preview for demos/review sessions
+planfile apply-plan .plan/plan.json --dry-run --human
+
 # 6) Approval step (local or policy engine)
 planfile approve-plan .plan/plan.json --by steve
 
 # 7) Verify again, then apply
 planfile verify-plan .plan/plan.json
 planfile apply-plan .plan/plan.json --yes
+
+# Optional concise human apply report with recovery hints
+planfile apply-plan .plan/plan.json --yes --human
 ```
 
 `inspect-plan` defaults to concise human output. Use `inspect-plan --json` for machine-readable CI/policy workflows.
 
 `apply-plan --dry-run` returns a preview report without running preconditions, writing files, or executing commands. It works for pending/approved/tampered plans and includes verification state so readiness is explicit in the output.
+Use `--human` for a concise text formatter; omit `--human` for machine-readable JSON.
 
 ## Coding-Agent Demo: Verify, Approve, Tamper Detection
 
@@ -132,6 +139,7 @@ Current MVP focuses on:
 - Shell command operations with explicit risk and preconditions
 - Command safety guardrails (optional allow/deny pattern policy + timeout defaults)
 - Dry-run preview reports for planned file/command operations before apply
+- Dry-run/apply recovery guidance fields to support practical manual rollback planning
 - Local CLI and JSON plan artifacts
 
 Not yet in MVP:

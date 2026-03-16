@@ -1,0 +1,45 @@
+name: PR Planfile Gate (Inlined Example)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  planfile-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build planfile CLI
+        run: npm run build
+
+      - name: Verify plan artifact exists
+        run: test -f .plan/plan.json
+
+      - name: Inspect plan artifact (machine output)
+        run: node dist/cli.js inspect-plan .plan/plan.json --json
+
+      - name: Verify plan ready state
+        shell: bash
+        run: |
+          node -e 'const fs=require("fs");const {execFileSync}=require("node:child_process");const out=execFileSync(process.execPath,["dist/cli.js","verify-plan",".plan/plan.json"],{encoding:"utf8"});const r=JSON.parse(out);fs.writeFileSync("verify-report.json",JSON.stringify(r,null,2)+"\n","utf8");if(r.status!=="ready"){console.error("Planfile gate failed:",r.blockers.join("; "));process.exit(1);}console.log("Planfile gate passed:",r.planId);'
+
+      - name: Upload plan and verify artifacts
+        uses: actions/upload-artifact@v5
+        with:
+          name: planfile-artifacts
+          path: |
+            .plan/plan.json
+            verify-report.json

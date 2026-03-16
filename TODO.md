@@ -5,8 +5,6 @@ This project stays intentionally MVP-sized: local CLI, schema-backed plans, hash
 ## Public Launch (MVP)
 
 1. Publish one end-to-end demo from plan creation through rejected/approved apply.
-2. Add an optional condensed human formatter for dry-run previews.
-3. Add rollback guidance for multi-step apply failures.
 
 ## Recently Completed
 
@@ -17,6 +15,10 @@ This project stays intentionally MVP-sized: local CLI, schema-backed plans, hash
 5. Added MVP command hardening for apply: optional allow/deny substring policy and default/per-command timeout behavior with explicit failure reporting.
 6. Expanded apply tests for allowed commands, denied commands, timeout failures, and `allowFailure` continuation behavior.
 7. Added MVP file path hardening for apply: deterministic allowed-root checks (defaulting to workspace cwd), explicit deny reporting for outside-root paths, and dry-run path safety previews.
+8. Added `apply-plan --human` condensed output for dry-run/apply previews while preserving JSON output by default.
+9. Added MVP recovery guidance in dry-run/apply reports (affected paths, per-operation manual recovery hints, and partial-apply context) without claiming transactional rollback.
+10. Added reusable GitHub PR gate composite action and copy-paste workflow examples for fast adoption.
+11. Updated CI and workflow examples to current GitHub Action majors (`checkout/setup-node/upload-artifact` v5) and Node 22.
 
 ## After Launch (Small Backlog)
 

@@ -1,0 +1,67 @@
+name: Planfile PR Gate
+description: Verify a committed planfile artifact is ready, then upload gate artifacts.
+inputs:
+  plan-path:
+    description: Path to the committed plan artifact JSON.
+    required: false
+    default: .plan/plan.json
+  verify-report-path:
+    description: Where to write verify-plan JSON output.
+    required: false
+    default: verify-report.json
+  node-version:
+    description: Node.js version used for install/build/gate steps.
+    required: false
+    default: "22"
+  install-command:
+    description: Dependency install command.
+    required: false
+    default: npm ci
+  build-command:
+    description: Build command for producing dist/cli.js.
+    required: false
+    default: npm run build
+  artifact-name:
+    description: Name used for uploaded gate artifacts.
+    required: false
+    default: planfile-artifacts
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+
+    - name: Install dependencies
+      shell: bash
+      run: ${{ inputs.install-command }}
+
+    - name: Build planfile CLI
+      shell: bash
+      run: ${{ inputs.build-command }}
+
+    - name: Verify plan artifact exists
+      shell: bash
+      run: test -f "${{ inputs.plan-path }}"
+
+    - name: Inspect plan artifact (machine output)
+      shell: bash
+      run: node dist/cli.js inspect-plan "${{ inputs.plan-path }}" --json
+
+    - name: Verify plan ready state
+      shell: bash
+      run: |
+        node -e 'const fs=require("fs");const {execFileSync}=require("node:child_process");const planPath=process.env.PLAN_PATH;const reportPath=process.env.REPORT_PATH;const out=execFileSync(process.execPath,["dist/cli.js","verify-plan",planPath],{encoding:"utf8"});const r=JSON.parse(out);fs.writeFileSync(reportPath,JSON.stringify(r,null,2)+"\n","utf8");if(r.status!=="ready"){console.error("Planfile gate failed:",r.blockers.join("; "));process.exit(1);}console.log("Planfile gate passed:",r.planId);'
+      env:
+        PLAN_PATH: ${{ inputs.plan-path }}
+        REPORT_PATH: ${{ inputs.verify-report-path }}
+
+    - name: Upload plan and verify artifacts
+      uses: actions/upload-artifact@v5
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: |
+          ${{ inputs.plan-path }}
+          ${{ inputs.verify-report-path }}

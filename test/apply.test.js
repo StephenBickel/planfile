@@ -117,6 +117,12 @@ function assertDryRunVerification(report, expected) {
   }
 }
 
+function assertRecoveryShape(recovery) {
+  assert.equal(recovery.transactionalRollback, false);
+  assert.equal(Array.isArray(recovery.steps), true);
+  assert.equal(Array.isArray(recovery.notes), true);
+}
+
 function commandWriteFile(filePath, value) {
   return `${process.execPath} -e 'require("node:fs").writeFileSync(${JSON.stringify(
     filePath
@@ -141,6 +147,10 @@ test('previewPlan shows file and command actions without executing side effects'
     assert.match(report.results[1].message, /would update/);
     assert.match(report.results[2].message, /would delete/);
     assert.match(report.results[3].message, /would run command/);
+    assertRecoveryShape(report.recovery);
+    assert.deepEqual(report.recovery.attemptedOperationIds, []);
+    assert.equal(report.recovery.pendingOperationIds.length, 4);
+    assert.equal(report.recovery.affectedPaths.length, 3);
     assertDryRunVerification(report, {
       status: 'ready',
       approvalStatus: 'approved',
@@ -212,6 +222,7 @@ test('apply-plan --dry-run works without --yes and performs no writes', (t) => {
   const report = JSON.parse(output);
   assert.equal(report.success, true);
   assert.equal(report.preconditionsChecked, false);
+  assertRecoveryShape(report.recovery);
   assertDryRunVerification(report, {
     status: 'ready',
     approvalStatus: 'approved',
@@ -238,6 +249,7 @@ test('apply-plan --dry-run works on unapproved plans and reports not-ready verif
 
   const report = JSON.parse(output);
   assert.equal(report.success, true);
+  assertRecoveryShape(report.recovery);
   assertDryRunVerification(report, {
     status: 'not-ready',
     approvalStatus: 'pending',
@@ -284,6 +296,9 @@ test('applyPlan runs allowed command operations', (t) => {
   assert.equal(report.results.length, 1);
   assert.equal(report.results[0].success, true);
   assert.match(report.results[0].message, /command ok/);
+  assertRecoveryShape(report.recovery);
+  assert.deepEqual(report.recovery.pendingOperationIds, []);
+  assert.equal(report.recovery.failedOperationId, undefined);
   assert.equal(fs.readFileSync(markerPath, 'utf8'), 'allowed');
 });
 
@@ -317,6 +332,8 @@ test('applyPlan denies commands that do not match allow policy', () => {
     assert.equal(report.results.length, 1);
     assert.equal(report.results[0].success, false);
     assert.match(report.results[0].message, /command denied by policy \(allow mode\)/);
+    assertRecoveryShape(report.recovery);
+    assert.equal(report.recovery.failedOperationId, 'op_command_deny');
     assert.equal(fs.existsSync(markerPath), false);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -359,6 +376,8 @@ test('applyPlan reports command timeout failures', (t) => {
   assert.equal(report.results.length, 1);
   assert.equal(report.results[0].success, false);
   assert.match(report.results[0].message, /timed out after 25ms/);
+  assertRecoveryShape(report.recovery);
+  assert.equal(report.recovery.failedOperationId, 'op_command_timeout');
 });
 
 test('applyPlan respects allowFailure for timed out commands', (t) => {
@@ -408,6 +427,8 @@ test('applyPlan respects allowFailure for timed out commands', (t) => {
   assert.match(report.results[0].message, /timed out after 25ms/);
   assert.match(report.results[0].message, /allowFailure=true/);
   assert.equal(report.results[1].success, true);
+  assertRecoveryShape(report.recovery);
+  assert.deepEqual(report.recovery.pendingOperationIds, []);
   assert.equal(fs.readFileSync(createdPath, 'utf8'), 'continued\n');
 });
 
@@ -438,6 +459,7 @@ test('previewPlan marks file operations denied when path is outside default work
     assert.match(report.results[0].message, /\[DENIED by file policy\]/);
     assert.match(report.results[0].details, /path safety: denied/);
     assert.match(report.results[0].details, /allowedRoots:/);
+    assertRecoveryShape(report.recovery);
     assert.equal(fs.existsSync(outsidePath), false);
   } finally {
     fs.rmSync(outsideRoot, { recursive: true, force: true });
@@ -468,6 +490,7 @@ test('applyPlan allows file writes inside default workspace root', () => {
 
     assert.equal(report.success, true);
     assert.equal(report.results[0].success, true);
+    assertRecoveryShape(report.recovery);
     assert.equal(fs.readFileSync(targetPath, 'utf8'), 'ok\n');
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -499,6 +522,7 @@ test('applyPlan denies file writes outside default workspace root', () => {
     assert.equal(report.success, false);
     assert.equal(report.results[0].success, false);
     assert.match(report.results[0].message, /file path denied by policy/);
+    assertRecoveryShape(report.recovery);
     assert.equal(fs.existsSync(outsidePath), false);
   } finally {
     fs.rmSync(outsideRoot, { recursive: true, force: true });
@@ -534,6 +558,7 @@ test('applyPlan denies traversal-style paths that resolve outside default worksp
     assert.equal(report.success, false);
     assert.equal(report.results[0].success, false);
     assert.match(report.results[0].message, /file path denied by policy/);
+    assertRecoveryShape(report.recovery);
     assert.equal(fs.existsSync(resolvedTraversalPath), false);
   } finally {
     if (fs.existsSync(resolvedTraversalPath)) {
@@ -571,8 +596,66 @@ test('applyPlan allows explicit filePolicy allowedRoots override', () => {
 
     assert.equal(report.success, true);
     assert.equal(report.results[0].success, true);
+    assertRecoveryShape(report.recovery);
     assert.equal(fs.readFileSync(outsidePath, 'utf8'), 'allowed\n');
   } finally {
     fs.rmSync(outsideRoot, { recursive: true, force: true });
   }
+});
+
+test('apply-plan --dry-run --human prints concise preview summary', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-preview-human-'));
+  t.after(() => {
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  const { plan } = makeApprovedPlan(root);
+  const planPath = path.join(root, 'plan.json');
+  fs.writeFileSync(planPath, JSON.stringify(plan, null, 2), 'utf8');
+
+  const output = runCli(t, ['apply-plan', planPath, '--dry-run', '--human']);
+  if (!output) return;
+
+  assert.match(output, /Mode: dry-run preview/);
+  assert.match(output, /Rollback Guidance:/);
+  assert.equal(output.trimStart().startsWith('{'), false);
+});
+
+test('apply-plan --yes --human prints concise apply summary', (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-apply-human-'));
+  t.after(() => {
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  const targetPath = path.join(root, 'human.txt');
+  const draft = {
+    source: 'test-agent',
+    summary: 'Human apply output test',
+    operations: [
+      {
+        id: 'op_file_human',
+        type: 'file',
+        action: 'create',
+        path: targetPath,
+        after: 'ok\n'
+      }
+    ],
+    preconditions: [],
+    execution: {
+      filePolicy: {
+        allowedRoots: [root]
+      }
+    }
+  };
+  const plan = approvePlan(createPlanFromDraft(draft), 'ci-user');
+  const planPath = path.join(root, 'plan.json');
+  fs.writeFileSync(planPath, JSON.stringify(plan, null, 2), 'utf8');
+
+  const output = runCli(t, ['apply-plan', planPath, '--yes', '--human']);
+  if (!output) return;
+
+  assert.match(output, /Mode: apply/);
+  assert.match(output, /Result: success/);
+  assert.match(output, /Rollback Guidance:/);
+  assert.equal(fs.readFileSync(targetPath, 'utf8'), 'ok\n');
 });
