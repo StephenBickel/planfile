@@ -19,7 +19,7 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  planfile-gate:
+  gatefile-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -28,14 +28,14 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Planfile PR gate
-        uses: StephenBickel/planfile/.github/actions/planfile-pr-gate@main
+        uses: StephenBickel/gatefile/.github/actions/gatefile-pr-gate@main
         with:
           plan-path: .plan/plan.json
           verify-report-path: verify-report.json
           node-version: "22"
 ```
 
-Reusable action source: `.github/actions/planfile-pr-gate/action.yml`.
+Reusable action source: `.github/actions/gatefile-pr-gate/action.yml`.
 
 ## Option B: Fully Inlined Workflow
 
@@ -51,10 +51,10 @@ Copy this workflow into your repo:
 `docs/examples/github-pr-review-comment.yml`
 
 This flow:
-1. Builds `planfile` in CI.
+1. Builds `gatefile` in CI.
 2. Produces `inspect-report.json`, `verify-report.json`, and `dry-run-report.json`.
 3. Renders markdown via:
-   - `node dist/cli.js render-pr-comment .plan/plan.json --inspect inspect-report.json --verify verify-report.json --dry-run dry-run-report.json --out planfile-pr-comment.md`
+   - `node dist/cli.js render-pr-comment .plan/plan.json --inspect inspect-report.json --verify verify-report.json --dry-run dry-run-report.json --out gatefile-pr-comment.md`
 4. Posts/updates a sticky PR comment using `marocchino/sticky-pull-request-comment`.
 5. Fails the job if `verify-report.json` is not `status: "ready"`.
 
@@ -73,5 +73,5 @@ node dist/cli.js render-pr-comment .plan/plan.json \
   --inspect inspect-report.json \
   --verify verify-report.json \
   --dry-run dry-run-report.json \
-  --out planfile-pr-comment.md
+  --out gatefile-pr-comment.md
 ```

@@ -1,12 +1,12 @@
 {
-  "name": "planfile",
+  "name": "gatefile",
   "version": "0.1.0",
-  "description": "Review exact file and shell changes, approve the plan hash, then apply safely",
+  "description": "Terraform for AI agent side effects \u2014 review exact file and shell changes, approve the hash, then apply safely.",
   "license": "MIT",
   "type": "commonjs",
   "main": "dist/index.js",
   "bin": {
-    "planfile": "dist/cli.js"
+    "gatefile": "dist/cli.js"
   },
   "files": [
     "dist",
@@ -26,11 +26,15 @@
   },
   "keywords": [
     "agents",
+    "ai",
+    "governance",
     "terraform",
     "plan",
     "apply",
     "safety",
-    "automation"
+    "automation",
+    "side-effects",
+    "cli"
   ],
   "engines": {
     "node": ">=18"
@@ -40,5 +44,14 @@
     "@types/node": "^20.17.30",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/StephenBickel/gatefile.git"
+  },
+  "homepage": "https://github.com/StephenBickel/gatefile",
+  "bugs": {
+    "url": "https://github.com/StephenBickel/gatefile/issues"
+  },
+  "author": "Stephen Bickel"
 }

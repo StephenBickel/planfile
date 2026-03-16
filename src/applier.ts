@@ -304,7 +304,7 @@ function buildDryRunRecovery(plan: PlanFile): DryRunReport["recovery"] {
     })),
     notes: [
       "Dry-run executes nothing; use this preview to prepare manual rollback before real apply.",
-      "planfile does not provide transactional rollback."
+      "gatefile does not provide transactional rollback."
     ]
   };
 }
@@ -347,7 +347,7 @@ function buildApplyRecovery(plan: PlanFile, results: ApplyOperationResult[]): Ap
       failedOperationId
         ? `Apply stopped at operation ${failedOperationId}; later operations were not run.`
         : "Apply completed all operations in order.",
-      "planfile does not provide transactional rollback."
+      "gatefile does not provide transactional rollback."
     ]
   };
 }

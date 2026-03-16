@@ -1,7 +1,7 @@
 # Changeset Spec (MVP)
 
-This document defines the initial JSON schema shape used by `planfile`.
-The machine-readable schema for this MVP lives at `schema/planfile.schema.json`.
+This document defines the initial JSON schema shape used by `gatefile`.
+The machine-readable schema for this MVP lives at `schema/gatefile.schema.json`.
 
 ## Top-Level Shape
 
@@ -31,7 +31,7 @@ The machine-readable schema for this MVP lives at `schema/planfile.schema.json`.
   },
   "integrity": {
     "algorithm": "sha256",
-    "canonicalizer": "planfile-v1",
+    "canonicalizer": "gatefile-v1",
     "planHash": "..."
   },
   "approval": {

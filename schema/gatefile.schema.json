@@ -55,7 +55,7 @@
       "required": ["algorithm", "canonicalizer", "planHash"],
       "properties": {
         "algorithm": { "type": "string", "const": "sha256" },
-        "canonicalizer": { "type": "string", "const": "planfile-v1" },
+        "canonicalizer": { "type": "string", "const": "gatefile-v1" },
         "planHash": {
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"

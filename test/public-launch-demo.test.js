@@ -72,7 +72,7 @@ function makeUnsafeDraft(root, allowedRoot) {
 }
 
 test('canonical public-launch flow: verify -> approve -> dry-run -> unsafe denied -> safe apply', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-public-launch-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-public-launch-'));
 
   try {
     const safe = makeSafeDraft(root);

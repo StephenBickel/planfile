@@ -87,18 +87,18 @@
     state.approvedHash = null;
     state.approvedBy = null;
     render();
-    log("planfile create-plan --from ... --out .plan/demo.json", "created plan artifact");
+    log("gatefile create-plan --from ... --out .plan/demo.json", "created plan artifact");
   }
 
   function doApprove() {
     if (!state.exists) {
-      log("planfile approve-plan .plan/demo.json --by steve", "failed: no plan exists");
+      log("gatefile approve-plan .plan/demo.json --by steve", "failed: no plan exists");
       return;
     }
     state.approvedHash = state.currentHash;
     state.approvedBy = "steve";
     render();
-    log("planfile approve-plan .plan/demo.json --by steve", "approval hash bound to current plan");
+    log("gatefile approve-plan .plan/demo.json --by steve", "approval hash bound to current plan");
   }
 
   function doTamper() {
@@ -120,16 +120,16 @@
       "verify-tampered": "After tampering, verify drops back to not-ready."
     };
     renderVerify(report, notes[tag] || "Verification run complete.");
-    log("planfile verify-plan .plan/demo.json", `status=${report.status}`);
+    log("gatefile verify-plan .plan/demo.json", `status=${report.status}`);
   }
 
   function doApply() {
     const report = readVerify();
     if (report.status !== "ready") {
-      log("planfile apply-plan .plan/demo.json --yes", "refused: verification failed (not-ready)");
+      log("gatefile apply-plan .plan/demo.json --yes", "refused: verification failed (not-ready)");
       return;
     }
-    log("planfile apply-plan .plan/demo.json --yes", "apply succeeded");
+    log("gatefile apply-plan .plan/demo.json --yes", "apply succeeded");
   }
 
   function resetAll() {

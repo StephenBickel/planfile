@@ -186,7 +186,7 @@ test('tampered approved plan -> verifyPlan becomes not-ready', () => {
 });
 
 test('generated plan validates against JSON schema', () => {
-  const schemaPath = path.join(__dirname, '..', 'schema', 'planfile.schema.json');
+  const schemaPath = path.join(__dirname, '..', 'schema', 'gatefile.schema.json');
   const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf8'));
 
   const pending = createPlanFromDraft(makeDraft());

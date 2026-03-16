@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  planfile-gate:
+  gatefile-gate:
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build planfile CLI
+      - name: Build gatefile CLI
         run: npm run build
 
       - name: Verify plan artifact exists
@@ -39,7 +39,7 @@ jobs:
       - name: Upload plan and verify artifacts
         uses: actions/upload-artifact@v5
         with:
-          name: planfile-artifacts
+          name: gatefile-artifacts
           path: |
             .plan/plan.json
             verify-report.json

@@ -62,7 +62,7 @@ export interface Approval {
 
 export interface PlanIntegrity {
   algorithm: "sha256";
-  canonicalizer: "planfile-v1";
+  canonicalizer: "gatefile-v1";
   planHash: string;
 }
 

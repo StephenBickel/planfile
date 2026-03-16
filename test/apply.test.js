@@ -134,7 +134,7 @@ function commandSleep(ms) {
 }
 
 test('previewPlan shows file and command actions without executing side effects', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-preview-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-preview-'));
   try {
     const { plan, createPath, markerPath } = makeApprovedPlan(root);
     const report = previewPlan(plan);
@@ -164,7 +164,7 @@ test('previewPlan shows file and command actions without executing side effects'
 });
 
 test('previewPlan on pending plans is allowed and reports not-ready verification', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-preview-pending-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-preview-pending-'));
   try {
     const { plan, createPath, markerPath } = makePendingPlan(root);
     const report = previewPlan(plan);
@@ -184,7 +184,7 @@ test('previewPlan on pending plans is allowed and reports not-ready verification
 });
 
 test('previewPlan on tampered approved plans is allowed and reports mismatches', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-preview-tampered-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-preview-tampered-'));
   try {
     const { plan, createPath, markerPath } = makeTamperedApprovedPlan(root);
     const report = previewPlan(plan);
@@ -207,7 +207,7 @@ test('previewPlan on tampered approved plans is allowed and reports mismatches',
 });
 
 test('apply-plan --dry-run works without --yes and performs no writes', (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-preview-cli-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-preview-cli-'));
   t.after(() => {
     fs.rmSync(root, { recursive: true, force: true });
   });
@@ -235,7 +235,7 @@ test('apply-plan --dry-run works without --yes and performs no writes', (t) => {
 });
 
 test('apply-plan --dry-run works on unapproved plans and reports not-ready verification', (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-preview-cli-pending-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-preview-cli-pending-'));
   t.after(() => {
     fs.rmSync(root, { recursive: true, force: true });
   });
@@ -260,7 +260,7 @@ test('apply-plan --dry-run works on unapproved plans and reports not-ready verif
 });
 
 test('applyPlan runs allowed command operations', (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-apply-command-allow-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-apply-command-allow-'));
   t.after(() => {
     fs.rmSync(root, { recursive: true, force: true });
   });
@@ -303,7 +303,7 @@ test('applyPlan runs allowed command operations', (t) => {
 });
 
 test('applyPlan denies commands that do not match allow policy', () => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-apply-command-deny-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-apply-command-deny-'));
   try {
     const markerPath = path.join(root, 'denied.txt');
     const draft = {
@@ -341,7 +341,7 @@ test('applyPlan denies commands that do not match allow policy', () => {
 });
 
 test('applyPlan reports command timeout failures', (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-apply-command-timeout-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-apply-command-timeout-'));
   t.after(() => {
     fs.rmSync(root, { recursive: true, force: true });
   });
@@ -381,7 +381,7 @@ test('applyPlan reports command timeout failures', (t) => {
 });
 
 test('applyPlan respects allowFailure for timed out commands', (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-apply-command-timeout-allow-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-apply-command-timeout-allow-'));
   t.after(() => {
     fs.rmSync(root, { recursive: true, force: true });
   });
@@ -433,7 +433,7 @@ test('applyPlan respects allowFailure for timed out commands', (t) => {
 });
 
 test('previewPlan marks file operations denied when path is outside default workspace root', () => {
-  const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-preview-denied-'));
+  const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-preview-denied-'));
   try {
     const outsidePath = path.join(outsideRoot, 'outside.txt');
     const draft = {
@@ -467,7 +467,7 @@ test('previewPlan marks file operations denied when path is outside default work
 });
 
 test('applyPlan allows file writes inside default workspace root', () => {
-  const root = fs.mkdtempSync(path.join(process.cwd(), '.planfile-apply-in-root-'));
+  const root = fs.mkdtempSync(path.join(process.cwd(), '.gatefile-apply-in-root-'));
   try {
     const targetPath = path.join(root, 'allowed.txt');
     const draft = {
@@ -498,7 +498,7 @@ test('applyPlan allows file writes inside default workspace root', () => {
 });
 
 test('applyPlan denies file writes outside default workspace root', () => {
-  const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-apply-outside-root-'));
+  const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-apply-outside-root-'));
   try {
     const outsidePath = path.join(outsideRoot, 'outside.txt');
     const draft = {
@@ -530,7 +530,7 @@ test('applyPlan denies file writes outside default workspace root', () => {
 });
 
 test('applyPlan denies traversal-style paths that resolve outside default workspace root', () => {
-  const traversalPath = '../planfile-traversal-denied.txt';
+  const traversalPath = '../gatefile-traversal-denied.txt';
   const resolvedTraversalPath = path.resolve(process.cwd(), traversalPath);
   if (fs.existsSync(resolvedTraversalPath)) {
     fs.rmSync(resolvedTraversalPath, { force: true });
@@ -568,7 +568,7 @@ test('applyPlan denies traversal-style paths that resolve outside default worksp
 });
 
 test('applyPlan allows explicit filePolicy allowedRoots override', () => {
-  const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-apply-override-root-'));
+  const outsideRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-apply-override-root-'));
   try {
     const outsidePath = path.join(outsideRoot, 'override-allowed.txt');
     const draft = {
@@ -604,7 +604,7 @@ test('applyPlan allows explicit filePolicy allowedRoots override', () => {
 });
 
 test('apply-plan --dry-run --human prints concise preview summary', (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-preview-human-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-preview-human-'));
   t.after(() => {
     fs.rmSync(root, { recursive: true, force: true });
   });
@@ -622,7 +622,7 @@ test('apply-plan --dry-run --human prints concise preview summary', (t) => {
 });
 
 test('apply-plan --yes --human prints concise apply summary', (t) => {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-apply-human-'));
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-apply-human-'));
   t.after(() => {
     fs.rmSync(root, { recursive: true, force: true });
   });

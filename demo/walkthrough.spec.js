@@ -2,7 +2,7 @@ const { test, expect } = require("@playwright/test");
 const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 
-test("records core planfile flow walkthrough", async ({ page }) => {
+test("records core gatefile flow walkthrough", async ({ page }) => {
   const screenshotDir = path.resolve(__dirname, "output");
   const demoFile = pathToFileURL(path.resolve(__dirname, "index.html")).href;
 

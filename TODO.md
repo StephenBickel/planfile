@@ -8,7 +8,7 @@ This project stays intentionally MVP-sized: local CLI, schema-backed plans, hash
 
 ## Recently Completed
 
-1. Added `planfile inspect-plan --json` for machine-readable CI and policy checks, while keeping concise default human inspect output.
+1. Added `gatefile inspect-plan --json` for machine-readable CI and policy checks, while keeping concise default human inspect output.
 2. Added inspect CLI coverage for both default and `--json` output modes.
 3. Documented a practical GitHub PR gate flow using `verify-plan` and uploaded plan artifacts.
 4. Added `apply-plan --dry-run` preview mode that reports planned file/command actions without executing writes, commands, or precondition checks, and includes readiness/verification state even before approval.

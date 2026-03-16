@@ -1,5 +1,5 @@
 name: Planfile PR Gate
-description: Verify a committed planfile artifact is ready, then upload gate artifacts.
+description: Verify a committed gatefile artifact is ready, then upload gate artifacts.
 inputs:
   plan-path:
     description: Path to the committed plan artifact JSON.
@@ -24,7 +24,7 @@ inputs:
   artifact-name:
     description: Name used for uploaded gate artifacts.
     required: false
-    default: planfile-artifacts
+    default: gatefile-artifacts
 runs:
   using: composite
   steps:
@@ -38,7 +38,7 @@ runs:
       shell: bash
       run: ${{ inputs.install-command }}
 
-    - name: Build planfile CLI
+    - name: Build gatefile CLI
       shell: bash
       run: ${{ inputs.build-command }}
 

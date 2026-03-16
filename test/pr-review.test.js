@@ -53,7 +53,7 @@ test('renderPRReviewComment includes required plan review signals', () => {
   const plan = createPlanFromDraft(makeDraft());
   const markdown = renderPRReviewComment({ plan });
 
-  assert.match(markdown, /## planfile PR Review/);
+  assert.match(markdown, /## gatefile PR Review/);
   assert.match(markdown, /\| Summary \|/);
   assert.match(markdown, /\| Risk \| low \(score: 2\) \|/);
   assert.match(markdown, /\| Approval \| pending \|/);
@@ -76,7 +76,7 @@ test('renderPRReviewComment includes dry-run highlights when provided', () => {
 });
 
 test('render-pr-comment CLI writes markdown file with optional reports', (t) => {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-pr-comment-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-pr-comment-'));
   t.after(() => {
     fs.rmSync(dir, { recursive: true, force: true });
   });
@@ -96,6 +96,6 @@ test('render-pr-comment CLI writes markdown file with optional reports', (t) => 
 
   assert.match(output, /PR comment markdown written:/);
   const markdown = fs.readFileSync(outPath, 'utf8');
-  assert.match(markdown, /## planfile PR Review/);
+  assert.match(markdown, /## gatefile PR Review/);
   assert.match(markdown, /### Dry-Run Highlights/);
 });

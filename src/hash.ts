@@ -69,7 +69,7 @@ export function withComputedIntegrity(plan: Omit<PlanFile, "integrity">): PlanFi
     ...withoutIntegrity,
     integrity: {
       algorithm: "sha256",
-      canonicalizer: "planfile-v1",
+      canonicalizer: "gatefile-v1",
       planHash
     }
   };

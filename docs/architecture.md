@@ -1,6 +1,6 @@
 # Architecture
 
-`planfile` is intentionally small: it separates intent creation from execution.
+`gatefile` is intentionally small: it separates intent creation from execution.
 
 ## Layers
 

@@ -4,7 +4,7 @@
 
 Problem: agent proposes broad refactors with unclear impact.
 
-With `planfile`:
+With `gatefile`:
 - Agent emits file + command operations
 - Reviewer inspects risk, touched paths, and the deterministic plan hash
 - Approval is bound to that exact hash
@@ -14,7 +14,7 @@ With `planfile`:
 
 Problem: operational scripts run with too much implicit behavior.
 
-With `planfile`:
+With `gatefile`:
 - Command steps are explicit and ordered
 - Preconditions ensure environment sanity
 - Approval gate prevents accidental prod execution
@@ -23,7 +23,7 @@ With `planfile`:
 
 Problem: hard to enforce consistent review of autonomous side effects.
 
-With `planfile`:
+With `gatefile`:
 - CI validates plan structure and risk
 - PR includes machine-readable intent artifact (`inspect-plan --json`)
 - Merge rules require plan approval status
@@ -34,7 +34,7 @@ See: `docs/github-pr-gate-example.md` for a copy-paste workflow.
 
 Problem: proving intent and authorization post-incident is expensive.
 
-With `planfile`:
+With `gatefile`:
 - Plan + approval + apply report become durable records
 - Reviewers can reconstruct what was intended vs executed
 

@@ -65,8 +65,8 @@ export function renderPRReviewComment(inputs: PRReviewCommentInputs): string {
   const dryRun = inputs.dryRunReport;
 
   const lines = [
-    "<!-- planfile-review-comment -->",
-    "## planfile PR Review",
+    "<!-- gatefile-review-comment -->",
+    "## gatefile PR Review",
     "",
     "| Signal | Status |",
     "| --- | --- |",

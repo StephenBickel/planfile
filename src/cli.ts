@@ -45,7 +45,7 @@ function positionalPath(args: string[], flagsWithValues: string[] = []): string 
 }
 
 function usage(): void {
-  console.log(`planfile commands:
+  console.log(`gatefile commands:
   create-plan --from <draft.json> --out <plan.json>
   inspect-plan <plan.json> [--json]
   verify-plan <plan.json>

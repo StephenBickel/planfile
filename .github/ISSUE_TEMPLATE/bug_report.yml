@@ -1,5 +1,5 @@
 name: Bug report
-description: Report a reproducible bug in planfile behavior
+description: Report a reproducible bug in gatefile behavior
 title: "bug: "
 labels:
   - bug
@@ -35,7 +35,7 @@ body:
   - type: input
     id: version
     attributes:
-      label: planfile version
+      label: gatefile version
       placeholder: e.g. 0.1.0
 
   - type: input

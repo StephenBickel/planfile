@@ -26,7 +26,7 @@ function makeDraft() {
 }
 
 function writePlan(t, plan) {
-  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'planfile-inspect-'));
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gatefile-inspect-'));
   t.after(() => {
     fs.rmSync(dir, { recursive: true, force: true });
   });

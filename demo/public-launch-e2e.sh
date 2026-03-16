@@ -59,4 +59,4 @@ ls -la "$WORKSPACE_DIR"
 echo
 echo "Reusable PR gate adoption path:"
 echo "- docs/github-pr-gate-example.md"
-echo "- .github/actions/planfile-pr-gate/action.yml"
+echo "- .github/actions/gatefile-pr-gate/action.yml"
