@@ -1,8 +1,13 @@
 # planfile
 
-**Terraform for AI agent side effects: review exact file and shell changes, approve the hash, then apply safely.**
+[![CI](https://github.com/StephenBickel/planfile/actions/workflows/ci.yml/badge.svg)](https://github.com/StephenBickel/planfile/actions/workflows/ci.yml)
 
-`planfile` gives agents a clear `plan` phase and `apply` phase so side effects stay auditable, gated, and repeatable.
+**Review exact file and shell changes, approve the plan hash, then apply safely.**
+
+`planfile` is a small CLI for separating agent side effects into explicit phases:
+- `create/inspect/verify` for review and governance
+- `approve` for human or policy gating
+- `apply` for controlled execution with preconditions
 
 ## The Problem
 
@@ -133,12 +138,7 @@ Early MVP skeleton. Interfaces are coherent and opinionated, but many execution 
 
 ## Roadmap
 
-1. Signature/attestation hooks on top of hash-bound approvals
-2. Safer command execution sandbox defaults
-3. Patch-based file applier with conflict handling
-4. Policy packs (org-level deny/allow rules)
-5. CI integration patterns around `verify-plan`
-6. Optional TUI for plan review and approvals
+See [TODO.md](TODO.md) for the near-term roadmap and scoped backlog.
 
 ## Contributing
 
