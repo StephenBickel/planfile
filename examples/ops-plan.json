@@ -1,0 +1,40 @@
+{
+  "version": "0.1",
+  "source": "ops-agent",
+  "summary": "Rotate app config and validate health",
+  "operations": [
+    {
+      "id": "op_file_1",
+      "type": "file",
+      "action": "update",
+      "path": "infra/app.env",
+      "after": "FEATURE_FLAG_X=true\nROTATION_EPOCH=2026-03-16\n"
+    },
+    {
+      "id": "op_cmd_1",
+      "type": "command",
+      "command": "./scripts/restart-app.sh",
+      "cwd": ".",
+      "allowFailure": false
+    },
+    {
+      "id": "op_cmd_2",
+      "type": "command",
+      "command": "curl -fsS http://localhost:8080/health",
+      "cwd": ".",
+      "allowFailure": false
+    }
+  ],
+  "preconditions": [
+    {
+      "kind": "branch_is",
+      "value": "main",
+      "description": "Ops plans only apply from main branch"
+    },
+    {
+      "kind": "env_present",
+      "value": "ALLOW_OPS_APPLY",
+      "description": "Explicit operator intent signal"
+    }
+  ]
+}

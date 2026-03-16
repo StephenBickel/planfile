@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/planfile.schema.json",
+  "title": "planfile MVP plan artifact",
+  "type": "object",
+  "required": [
+    "version",
+    "id",
+    "createdAt",
+    "source",
+    "summary",
+    "operations",
+    "preconditions",
+    "risk",
+    "integrity",
+    "approval"
+  ],
+  "properties": {
+    "version": { "type": "string" },
+    "id": { "type": "string" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "source": { "type": "string" },
+    "summary": { "type": "string" },
+    "operations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/operation" }
+    },
+    "preconditions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/precondition" }
+    },
+    "risk": {
+      "type": "object",
+      "required": ["score", "level", "reasons"],
+      "properties": {
+        "score": { "type": "number" },
+        "level": { "type": "string", "enum": ["low", "medium", "high"] },
+        "reasons": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "integrity": {
+      "type": "object",
+      "required": ["algorithm", "canonicalizer", "planHash"],
+      "properties": {
+        "algorithm": { "type": "string", "const": "sha256" },
+        "canonicalizer": { "type": "string", "const": "planfile-v1" },
+        "planHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["pending", "approved", "rejected"]
+        },
+        "approvedBy": { "type": "string" },
+        "approvedAt": { "type": "string", "format": "date-time" },
+        "approvedPlanHash": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": { "const": "approved" }
+            }
+          },
+          "then": {
+            "required": ["approvedBy", "approvedAt", "approvedPlanHash"]
+          }
+        }
+      ]
+    }
+  },
+  "$defs": {
+    "operation": {
+      "oneOf": [
+        {
+          "type": "object",
+          "required": ["id", "type", "action", "path"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "type": "string", "const": "file" },
+            "action": {
+              "type": "string",
+              "enum": ["create", "update", "delete"]
+            },
+            "path": { "type": "string" },
+            "before": { "type": "string" },
+            "after": { "type": "string" }
+          }
+        },
+        {
+          "type": "object",
+          "required": ["id", "type", "command"],
+          "properties": {
+            "id": { "type": "string" },
+            "type": { "type": "string", "const": "command" },
+            "command": { "type": "string" },
+            "cwd": { "type": "string" },
+            "allowFailure": { "type": "boolean" }
+          }
+        }
+      ]
+    },
+    "precondition": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": ["git_clean", "branch_is", "env_present"]
+        },
+        "value": { "type": "string" },
+        "description": { "type": "string" }
+      }
+    }
+  }
+}

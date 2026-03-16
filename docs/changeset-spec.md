@@ -1,0 +1,119 @@
+# Changeset Spec (MVP)
+
+This document defines the initial JSON schema shape used by `planfile`.
+The machine-readable schema for this MVP lives at `schema/planfile.schema.json`.
+
+## Top-Level Shape
+
+```json
+{
+  "version": "0.1",
+  "id": "plan_...",
+  "createdAt": "2026-03-16T00:00:00.000Z",
+  "source": "agent-name",
+  "summary": "Short intent summary",
+  "operations": [],
+  "preconditions": [],
+  "risk": {
+    "score": 0,
+    "level": "low",
+    "reasons": []
+  },
+  "integrity": {
+    "algorithm": "sha256",
+    "canonicalizer": "planfile-v1",
+    "planHash": "..."
+  },
+  "approval": {
+    "status": "pending"
+  }
+}
+```
+
+## Operation Types
+
+### File Operation
+
+```json
+{
+  "id": "op_file_1",
+  "type": "file",
+  "action": "update",
+  "path": "src/index.ts",
+  "before": "old text (optional in MVP)",
+  "after": "new text"
+}
+```
+
+Allowed actions:
+- `create`
+- `update`
+- `delete`
+
+### Command Operation
+
+```json
+{
+  "id": "op_cmd_1",
+  "type": "command",
+  "command": "npm test",
+  "cwd": ".",
+  "allowFailure": false
+}
+```
+
+## Preconditions
+
+MVP precondition kinds:
+- `git_clean`
+- `branch_is`
+- `env_present`
+
+Example:
+
+```json
+{
+  "kind": "branch_is",
+  "value": "main",
+  "description": "Only apply on main"
+}
+```
+
+## Approval
+
+`approval.status` values:
+- `pending`
+- `approved`
+- `rejected`
+
+On approval, add:
+- `approvedBy`
+- `approvedAt`
+- `approvedPlanHash` (must match `integrity.planHash` at approval time)
+
+## Integrity
+
+`integrity.planHash` is computed from a normalized representation of:
+- `version`
+- `source`
+- `summary`
+- `operations`
+- `preconditions`
+
+MVP note: this is deterministic local hashing, not external signing/attestation.
+
+## Compatibility
+
+- `version` is required
+- Unknown fields should be ignored by readers
+- Breaking schema changes must bump minor/major version
+
+## Verification Report (`verify-plan`)
+
+`verify-plan` emits a JSON report with:
+- `checks.integrityMetadataExists`
+- `checks.recordedHashMatchesCurrent`
+- `checks.approvalBoundToCurrentHash`
+- `readyToApplyFromIntegrityApproval`
+- `status` (`ready` or `not-ready`)
+- `blockers` (human-readable reasons when not ready)

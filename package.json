@@ -1,0 +1,40 @@
+{
+  "name": "planfile",
+  "version": "0.1.0",
+  "description": "Review exact file and shell changes, approve the plan hash, then apply safely",
+  "license": "MIT",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "bin": {
+    "planfile": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "schema",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "clean": "rm -rf dist",
+    "cli": "ts-node src/cli.ts",
+    "test": "npm run build && node --test",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "keywords": [
+    "agents",
+    "terraform",
+    "plan",
+    "apply",
+    "safety",
+    "automation"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.30",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.2"
+  }
+}
