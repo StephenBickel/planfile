@@ -5,6 +5,8 @@
 
 **Terraform for AI agent side effects.**
 
+![gatefile demo](demo.gif)
+
 Your AI agent wants to edit 14 files and run 3 shell commands. Do you trust it?
 
 `gatefile` makes agent side effects explicit, reviewable, and approvable — before anything executes.
@@ -310,7 +312,7 @@ See [TODO.md](TODO.md) for near-term plans. Current focus:
 - [x] GitHub PR gate action
 - [x] Recovery guidance in apply reports
 - [x] Webhook/notification hooks (`onPlanCreated`, `onApprovalNeeded`)
-- [ ] Signing/attestation workflows
+- [x] Signing/attestation workflows (Ed25519)
 - [x] MCP server for agent integrations
 
 ## Contributing
