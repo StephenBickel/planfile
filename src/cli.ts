@@ -16,6 +16,7 @@ import { fireOnPlanCreated, fireOnApprovalNeeded, runPolicyHook } from "./hooks"
 import { configPath, loadGatefileConfig } from "./config";
 import { getRepoRoot } from "./state";
 import { generateApprovalAttestationKeyPair } from "./attestation";
+import { startMcpServer } from "./mcp";
 
 function readJson<T>(path: string): T {
   const full = resolve(path);
@@ -62,9 +63,12 @@ function usage(): void {
   approve-plan <plan.json> --by <name>
   review <plan.json>
   apply-plan <plan.json> [--yes] [--dry-run] [--human]
+  rollback-apply <receipt-id> [--yes] [--human]
   audit [--since <duration>] [--plan <planId>] [--json]
   run-pipeline <dir> [--dry-run] [--continue-on-error] [--json]
-  render-pr-comment <plan.json> [--inspect <inspect.json>] [--verify <verify.json>] [--dry-run <dry-run.json>] [--out <comment.md>]`);
+  render-pr-comment <plan.json> [--inspect <inspect.json>] [--verify <verify.json>] [--dry-run <dry-run.json>] [--out <comment.md>]
+  mcp                                Start MCP server (stdio transport)`);
+
 }
 
 function inspect(plan: PlanFile, jsonMode: boolean, config = loadGatefileConfig(getRepoRoot())): void {
@@ -302,6 +306,12 @@ async function main(): Promise<void> {
 
     process.exit(result.success ? 0 : 1);
   }
+
+  if (cmd === "mcp") {
+    startMcpServer();
+    return;
+  }
+
 
   usage();
   process.exit(1);
